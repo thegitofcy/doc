@@ -6,7 +6,7 @@
 
 ### 2.1 主要的类和接口
 
-![](../../../图片/OAuth2/oauth2.png)
+![](../../../local/picture/OAuth2/oauth2.png)
 
 - TokenEndpoint : 入口类, 相当于一个 Controller, 处理 /oauth/token 请求.
 - ClientDetailsService : 读取第三方应用信息的接口.
@@ -194,6 +194,207 @@ public class SecurityAuthenticationSuccHandler extends SavedRequestAwareAuthenti
 ## 4. Token 
 
 #### 4.1 Token 基本参数配置
+
+token 是由认证服务器创建的, 所以token 的基本配置是在认证服务器上完成, 就需要继承认证服务器的一个类: ==**AuthorizationServerConfigurerAdapter**==, 这个类有三个重载的方法 ==configre()==
+
+- ==configure(AuthorizationServerEndpointsConfigurer endpoints)== : 对入口点(**==TokenEndpoint==**)的配置
+- ==configure(AuthorizationServerSecurityConfigurer security)== : 
+- ==configure(ClientDetailsServiceConfigurer clients)== : 配置客户端
+
+```java
+@Configuration
+@EnableAuthorizationServer
+public class BaseAuthorizationServerConfig extends AuthorizationServerConfigurerAdapter {
+
+    @Autowired
+    private AuthenticationManager authenticationManager;
+
+    @Autowired
+    private BaseUserDetailService userDetailsService;
+
+    /**
+     * TokenEndpoint 是 /oauth/token 的入口点,所以这里就是对入口点的一些配置
+     * 需要配置的是 : AuthenticationManager, UserDetailsService .
+     * @param endpoints
+     * @throws Exception
+     */
+    @Override
+    public void configure(AuthorizationServerEndpointsConfigurer endpoints) throws Exception {
+      // 没有继承 AuthorizationServerConfigurerAdapter的时候, 会自动去找这些 bean. 如果继承了, 则需要显式的去自己手动配置这些 bean
+        endpoints.authenticationManager(authenticationManager)
+                .userDetailsService(userDetailsService);
+    }
+
+    @Override
+    public void configure(AuthorizationServerSecurityConfigurer security) throws Exception {
+        super.configure(security);
+    }
+
+    /**
+     * 客户端 相关的配置
+     * 当重写了这个方法后, 配置文件中配置的 clientid 和 clientsecret 就不好使了,
+     * 会根据这个方法的配置去指定发令牌的客户端.
+     * @param clients
+     * @throws Exception
+     */
+    @Override
+    public void configure(ClientDetailsServiceConfigurer clients) throws Exception {
+        clients
+                // 指定 client 存放位置 jdbc(dataSource) 存放在数据库
+//                .jdbc(dataSource)
+                .inMemory()
+                // clientId
+                .withClient("test")
+                // clientSecret
+                .secret("testSecret")
+          			// token令牌 的有效期 (秒), 如果不指定或者不配置, 则是 0, 就代表发放的 token 是不会过期的
+           			.accessTokenValiditySeconds(7200)
+          			// 对当前指定的 client 的授权模式, 参数是一个字符串数组
+                .authorizedGrantTypes("authorization_code", "refresh_token")
+          			// 指定 scopes, 那么客户端在发送请求的时候, 要么不带 scope 参数, 要么所带的 scope 参数必须在这里配置的数组内.
+          			// 如果请求中没有携带 scope 参数, 那么会自动将这里的 scopes 数组都设置进去
+          			.scopes("all", "read")
+          			// 发送授权码后, 跳转回的页面.
+                .redirectUris("http://example.com");
+      
+      					// 如果想设置可以给多个 client 发令牌, 则可以使用 and() 在下边继续进行配置
+      					.and()
+                .withClient(...)
+                .....
+                // 可以将 client 的配置项配置在配置文件内, 这样比较灵活一点, 否则根据以上的配置, 只能给以上配置的 client 发令牌.
+    }
+}
+```
+
+配置项读取类以及配置项
+
+```java
+# OAuth2 配置
+security.basic.conf.oAuth2.clients[0].clientId = test1
+security.basic.conf.oAuth2.clients[0].clientSecret = testSecret1
+security.basic.conf.oAuth2.clients[0].accessTokenValiditySeconds = 3600
+
+security.basic.conf.oAuth2.clients[1].clientId = test2
+security.basic.conf.oAuth2.clients[1].clientSecret = testSecret2
+security.basic.conf.oAuth2.clients[1].accessTokenValiditySeconds = 7200
+
+@Data
+public class Oauth2ClientProperties {
+    private String clientId;
+    private String clientSecret;
+    private Integer accessTokenValiditySeconds = 600;
+}
+
+@Data
+public class OAuth2Properties {
+    private Oauth2ClientProperties[] clients;
+}
+
+@Data
+@Component
+@ConfigurationProperties(prefix = "security.basic.conf")
+public class BaseProperties {
+
+    // 默认登录页面
+    private String loginPage = "/login.html";
+
+    // 默认首页, 登录成功后跳转到首页
+    private String indexPage;
+
+    // 授权相关配置
+    private AuthorizeProperties authorize;
+    
+    // OAuth2 配置
+    private OAuth2Properties oAuth2;
+}
+```
+
+修改配置类中关于 client 的configure 方法
+
+```java
+@Autowired
+private BaseProperties baseProperties;
+
+@Override
+    public void configure(ClientDetailsServiceConfigurer clients) throws Exception {
+    	InMemoryClientDetailsServiceBuilder builder = clients.inMemory();
+        Oauth2ClientProperties[] oauth2s = baseProperties.getOAuth2().getClients();
+        if (ArrayUtils.isNotEmpty(oauth2s)) {
+            for (Oauth2ClientProperties oauth2 : oauth2s) {
+                builder
+                        .withClient(oauth2.getClientId())
+                        // clientSecret
+                        .secret(oauth2.getClientSecret())
+                        // 令牌有效时间 (秒), 需要在配置类中配置默认的事件
+                        .accessTokenValiditySeconds(oauth2.getAccessTokenValiditySeconds())
+                        // 指定 scopes, 那么客户端在发送请求的时候, 要么不带 scope 参数, 要么所带的 scope 参数必须在这里配置的数组内.
+                        // 以下配置省略
+//                        .scopes(oauth2.getXXXX)
+//                        .authorizedGrantTypes("authorization_code")
+//                        .redirectUris("http://example.com");
+            }
+        }    
+    }
+```
+
+
+
+#### 4.2 令牌的存储
+
+当使用内存存储 token 时, 每次重启服务, 所有的令牌都会失效. 
+
+所以可以将 token 的存储配置在 Redis 内.毕竟令牌的访问比较频繁.
+
+==**配置 RedisTokenStore**==
+
+```java
+@Configuration
+public class TokenStoreConfig {
+    // redis 连接工厂
+    @Autowired
+    private RedisConnectionFactory redisConnectionFactory;
+
+    // 通过指定 Redis 连接工厂, 创建一个 RedisTokenStore(OAuth2 提供的) 的 bean
+    @Bean
+    public TokenStore redisTokenStore(){
+        return new RedisTokenStore(redisConnectionFactory);
+    }
+}
+```
+
+==**在认证服务器配置类(继承 AuthorizationServerConfigurerAdater的配置类)中, 配置入口点的 configure 方法内 RedisTokenStore**==
+
+```java
+@Configuration
+@EnableAuthorizationServer
+public class BaseAuthorizationServerConfig extends AuthorizationServerConfigurerAdapter {
+
+    @Autowired
+    private AuthenticationManager authenticationManager;
+
+    @Autowired
+    private BaseUserDetailService userDetailsService;
+
+    @Autowired
+    private RedisTokenStore redisTokenStore;
+
+    /**
+     * TokenEndpoint 是 /oauth/token 的入口点,所以这里就是对入口点的一些配置
+     * 需要配置的是 : AuthenticationManager, UserDetailsService .
+     * @param endpoints
+     * @throws Exception
+     */
+    @Override
+    public void configure(AuthorizationServerEndpointsConfigurer endpoints) throws Exception {
+        endpoints
+                .tokenStore(redisTokenStore)
+                .authenticationManager(authenticationManager)
+                .userDetailsService(userDetailsService);
+    }
+}
+```
+
+==**此时, 在产生 token 后, 就会存入到 Redis 上. 重启服务的话, 之前的令牌也是有效的. 会自动取 Redis 内拿令牌**==
 
 
 
