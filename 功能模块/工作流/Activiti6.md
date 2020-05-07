@@ -254,5 +254,24 @@ MDC 是指将一些上下文数据存储在ThreadLocal 中, 当需要的时候, 
 
 
 
+一般开发步骤:
+
+```properties
+获取 ProcessEngine 对象
+1: 创建 ProcessEngineConfiguration 对象 config
+2: 创建 ProcessEngine对象. processEngine = config.buildProcessEngine();
+
+部署步骤 : 
+1: 获取 RepositoryService. repositoryService = processEngine.getRepositoryService();
+2: 创建 Deploymentbuilder 对象. builder = repositoryService.createDeployment();
+3: 可以对将要部署的流程进行命名. builder.name("测试部署资源");
+4: 添加要部署的资源. builder.addClasspathResource("xxxx.bpmn20.xml"); // xml 的名称必须要以 .bpmn20.xml 结尾, 否则会找不到文件, 可以一次部署一个文件也可以一次部署多个文件. 总之一次无论部署多少个文件, 都只有一个部署对象
+5: 完成部署. Deployment deployment = builder.deploy();
+
+相关查询:(通过 Repository 获取到 Deployment 查询对象, ProcessDefinition查询对象等)
+```
+
+
+
 
 
