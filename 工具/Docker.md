@@ -1,3 +1,45 @@
+#  Docker
+
+# 1. 安装
+
+**Mac 系统**:
+
+直接去管网下载, 然后安装.
+
+
+
+**Linux 系统**:
+
+安装: `yum install docker`
+
+启动: `systemctl start docker`
+
+
+
+**Windows 系统**:
+
+不清楚....
+
+
+
+## 2. 简单使用
+
+### 2.1 命令
+
+```properties
+docker --version : 查看 Docker 版本
+docker images : 查看所有镜像
+docker ps : 查看正在运行的 Docker 容器
+docker ps -a : 查看所有运行过的容器. 可以理解为历史记录
+docker run -itd <image id> : 运行指定的镜像. 运行后, 会生成一个容器
+docker start <container id> : 启动指定的容器.
+docker stop <container id> : 停止指定的容器
+docker rm <container id> : 删除指定的容器
+docker rmi <image id> : 删除指定的镜像
+```
+
+
+
 ## 命令
 
 ```shell
@@ -140,3 +182,18 @@ COPY hello.jar /usr/hello.jar
  
 
 OK . 洗洗睡觉吧.
+
+
+
+## 附录
+
+### 1. 出现过的坑
+
+#### 1.1 docker pull 时报错
+
+`error pulling image configuration: Get https://production.cloudflare.docker.com/registry-v2/docker/registry/v2/blobs/sha256/d2/d23bdf5b1b1b1afce5f1d0fd33e7ed8afbc084b594b9ccf742a5b27080d8a4a8/data?verify=1588903806-jZWaVVz21dWbmSq5zjuJM7i7rVw%3D: dial tcp: lookup production.cloudflare.docker.com: no such host`
+
+此错误一般是因为系统时间不一致造成的, 使用 `ntpdate time.windows.com`命令来同步时间后, 应该就解决了.
+
+
+
