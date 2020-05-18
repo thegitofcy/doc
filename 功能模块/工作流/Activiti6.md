@@ -100,8 +100,312 @@ BPMN 定义了 5 个基础的元素类型:
 
 ==**注意 :**== 要加载的流程定义文件的后缀必须是 ==**.bpmn20.xml**==
 
-1. 创建流程图()
-2. 
+1. **创建流程图**
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<definitions xmlns="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:activiti="http://activiti.org/bpmn" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:omgdc="http://www.omg.org/spec/DD/20100524/DC" xmlns:omgdi="http://www.omg.org/spec/DD/20100524/DI" typeLanguage="http://www.w3.org/2001/XMLSchema" expressionLanguage="http://www.w3.org/1999/XPath" targetNamespace="http://www.activiti.org/test">
+    <process id="second_approve" name="二级审批流程" isExecutable="true">
+        <startEvent id="startEvent" name="开始"></startEvent>
+        <userTask id="submitForm" name="填写审批信息">
+            <extensionElements>
+                <activiti:formProperty id="message" name="申请信息" type="string" required="true"></activiti:formProperty>
+                <activiti:formProperty id="name" name="申请人姓名" type="string" required="true"></activiti:formProperty>
+                <activiti:formProperty id="submitTime" name="提交时间" type="date" datePattern="yyyy-MM-dd" required="true"></activiti:formProperty>
+                <activiti:formProperty id="submitType" name="确认申请" type="string" required="true"></activiti:formProperty>
+            </extensionElements>
+        </userTask>
+        <sequenceFlow id="flow1" sourceRef="startEvent" targetRef="submitForm"></sequenceFlow>
+        <exclusiveGateway id="decideSubmit" name="提交OR取消"></exclusiveGateway>
+        <sequenceFlow id="flow2" sourceRef="submitForm" targetRef="decideSubmit"></sequenceFlow>
+        <userTask id="tl_approve" name="主管审批">
+            <extensionElements>
+                <activiti:formProperty id="tlApprove" name="主管审批结果" type="string"></activiti:formProperty>
+                <activiti:formProperty id="tlMessage" name="主管备注" type="string" required="true"></activiti:formProperty>
+            </extensionElements>
+        </userTask>
+        <sequenceFlow id="flow3" sourceRef="decideSubmit" targetRef="tl_approve">
+            <conditionExpression xsi:type="tFormalExpression"><![CDATA[${submitType == "y" || submitType == "Y"}]]></conditionExpression>
+        </sequenceFlow>
+        <exclusiveGateway id="decideTLApprove" name="主管审批校验"></exclusiveGateway>
+        <sequenceFlow id="flow4" sourceRef="tl_approve" targetRef="decideTLApprove"></sequenceFlow>
+        <userTask id="hr_approve" name="人事审批">
+            <extensionElements>
+                <activiti:formProperty id="hrApprove" name="人事审批结果" type="string" required="true"></activiti:formProperty>
+                <activiti:formProperty id="hrMessage" name="人事审批备注" type="string" required="true"></activiti:formProperty>
+            </extensionElements>
+        </userTask>
+        <sequenceFlow id="flow5" sourceRef="decideTLApprove" targetRef="hr_approve">
+            <conditionExpression xsi:type="tFormalExpression"><![CDATA[${tlApprove == "y" || tlApprove == "Y"}]]></conditionExpression>
+        </sequenceFlow>
+        <exclusiveGateway id="decideHRApprove" name="人事审批校验"></exclusiveGateway>
+        <sequenceFlow id="flow6" sourceRef="hr_approve" targetRef="decideHRApprove"></sequenceFlow>
+        <endEvent id="endEvent" name="结束"></endEvent>
+        <sequenceFlow id="flow7" sourceRef="decideHRApprove" targetRef="endEvent">
+            <conditionExpression xsi:type="tFormalExpression"><![CDATA[${hrApprove == "y" || hrApprove == "Y"}]]></conditionExpression>
+        </sequenceFlow>
+        <endEvent id="endEventCancel" name="取消"></endEvent>
+        <sequenceFlow id="flow8" sourceRef="decideSubmit" targetRef="endEventCancel">
+            <conditionExpression xsi:type="tFormalExpression"><![CDATA[${submitType == "n" || submitType == "N"}]]></conditionExpression>
+        </sequenceFlow>
+        <sequenceFlow id="flow9" sourceRef="decideTLApprove" targetRef="submitForm">
+            <conditionExpression xsi:type="tFormalExpression"><![CDATA[${tlApprove == "n" || tlApprove == "N"}]]></conditionExpression>
+        </sequenceFlow>
+        <sequenceFlow id="flow10" sourceRef="decideHRApprove" targetRef="submitForm">
+            <conditionExpression xsi:type="tFormalExpression"><![CDATA[${hrApprove == "n" || hrApprove == "N"}]]></conditionExpression>
+        </sequenceFlow>
+    </process>
+    <bpmndi:BPMNDiagram id="BPMNDiagram_second_approve">
+        <bpmndi:BPMNPlane bpmnElement="second_approve" id="BPMNPlane_second_approve">
+            <bpmndi:BPMNShape bpmnElement="startEvent" id="BPMNShape_startEvent">
+                <omgdc:Bounds height="35.0" width="35.0" x="160.0" y="180.0"></omgdc:Bounds>
+            </bpmndi:BPMNShape>
+            <bpmndi:BPMNShape bpmnElement="submitForm" id="BPMNShape_submitForm">
+                <omgdc:Bounds height="55.0" width="105.0" x="240.0" y="170.0"></omgdc:Bounds>
+            </bpmndi:BPMNShape>
+            <bpmndi:BPMNShape bpmnElement="decideSubmit" id="BPMNShape_decideSubmit">
+                <omgdc:Bounds height="40.0" width="40.0" x="390.0" y="178.0"></omgdc:Bounds>
+            </bpmndi:BPMNShape>
+            <bpmndi:BPMNShape bpmnElement="tl_approve" id="BPMNShape_tl_approve">
+                <omgdc:Bounds height="55.0" width="105.0" x="475.0" y="171.0"></omgdc:Bounds>
+            </bpmndi:BPMNShape>
+            <bpmndi:BPMNShape bpmnElement="decideTLApprove" id="BPMNShape_decideTLApprove">
+                <omgdc:Bounds height="40.0" width="40.0" x="625.0" y="179.0"></omgdc:Bounds>
+            </bpmndi:BPMNShape>
+            <bpmndi:BPMNShape bpmnElement="hr_approve" id="BPMNShape_hr_approve">
+                <omgdc:Bounds height="55.0" width="105.0" x="710.0" y="172.0"></omgdc:Bounds>
+            </bpmndi:BPMNShape>
+            <bpmndi:BPMNShape bpmnElement="decideHRApprove" id="BPMNShape_decideHRApprove">
+                <omgdc:Bounds height="40.0" width="40.0" x="860.0" y="180.0"></omgdc:Bounds>
+            </bpmndi:BPMNShape>
+            <bpmndi:BPMNShape bpmnElement="endEvent" id="BPMNShape_endEvent">
+                <omgdc:Bounds height="35.0" width="35.0" x="945.0" y="183.0"></omgdc:Bounds>
+            </bpmndi:BPMNShape>
+            <bpmndi:BPMNShape bpmnElement="endEventCancel" id="BPMNShape_endEventCancel">
+                <omgdc:Bounds height="35.0" width="35.0" x="510.0" y="250.0"></omgdc:Bounds>
+            </bpmndi:BPMNShape>
+            <bpmndi:BPMNEdge bpmnElement="flow1" id="BPMNEdge_flow1">
+                <omgdi:waypoint x="195.0" y="197.0"></omgdi:waypoint>
+                <omgdi:waypoint x="240.0" y="197.0"></omgdi:waypoint>
+            </bpmndi:BPMNEdge>
+            <bpmndi:BPMNEdge bpmnElement="flow2" id="BPMNEdge_flow2">
+                <omgdi:waypoint x="345.0" y="197.0"></omgdi:waypoint>
+                <omgdi:waypoint x="390.0" y="198.0"></omgdi:waypoint>
+            </bpmndi:BPMNEdge>
+            <bpmndi:BPMNEdge bpmnElement="flow3" id="BPMNEdge_flow3">
+                <omgdi:waypoint x="430.0" y="198.0"></omgdi:waypoint>
+                <omgdi:waypoint x="475.0" y="198.0"></omgdi:waypoint>
+            </bpmndi:BPMNEdge>
+            <bpmndi:BPMNEdge bpmnElement="flow4" id="BPMNEdge_flow4">
+                <omgdi:waypoint x="580.0" y="198.0"></omgdi:waypoint>
+                <omgdi:waypoint x="625.0" y="199.0"></omgdi:waypoint>
+            </bpmndi:BPMNEdge>
+            <bpmndi:BPMNEdge bpmnElement="flow5" id="BPMNEdge_flow5">
+                <omgdi:waypoint x="665.0" y="199.0"></omgdi:waypoint>
+                <omgdi:waypoint x="710.0" y="199.0"></omgdi:waypoint>
+            </bpmndi:BPMNEdge>
+            <bpmndi:BPMNEdge bpmnElement="flow6" id="BPMNEdge_flow6">
+                <omgdi:waypoint x="815.0" y="199.0"></omgdi:waypoint>
+                <omgdi:waypoint x="860.0" y="200.0"></omgdi:waypoint>
+            </bpmndi:BPMNEdge>
+            <bpmndi:BPMNEdge bpmnElement="flow7" id="BPMNEdge_flow7">
+                <omgdi:waypoint x="900.0" y="200.0"></omgdi:waypoint>
+                <omgdi:waypoint x="945.0" y="200.0"></omgdi:waypoint>
+            </bpmndi:BPMNEdge>
+            <bpmndi:BPMNEdge bpmnElement="flow8" id="BPMNEdge_flow8">
+                <omgdi:waypoint x="410.0" y="218.0"></omgdi:waypoint>
+                <omgdi:waypoint x="410.0" y="266.0"></omgdi:waypoint>
+                <omgdi:waypoint x="510.0" y="267.0"></omgdi:waypoint>
+            </bpmndi:BPMNEdge>
+            <bpmndi:BPMNEdge bpmnElement="flow9" id="BPMNEdge_flow9">
+                <omgdi:waypoint x="645.0" y="219.0"></omgdi:waypoint>
+                <omgdi:waypoint x="644.0" y="297.0"></omgdi:waypoint>
+                <omgdi:waypoint x="292.0" y="296.0"></omgdi:waypoint>
+                <omgdi:waypoint x="292.0" y="225.0"></omgdi:waypoint>
+            </bpmndi:BPMNEdge>
+            <bpmndi:BPMNEdge bpmnElement="flow10" id="BPMNEdge_flow10">
+                <omgdi:waypoint x="880.0" y="180.0"></omgdi:waypoint>
+                <omgdi:waypoint x="880.0" y="133.0"></omgdi:waypoint>
+                <omgdi:waypoint x="290.0" y="132.0"></omgdi:waypoint>
+                <omgdi:waypoint x="292.0" y="170.0"></omgdi:waypoint>
+            </bpmndi:BPMNEdge>
+        </bpmndi:BPMNPlane>
+    </bpmndi:BPMNDiagram>
+</definitions>
+```
+
+
+
+2. **创建项目, 引入如下依赖**
+
+```xml
+<dependencies>
+        <dependency>
+            <groupId>org.activiti</groupId>
+            <artifactId>activiti-engine</artifactId>
+            <version>6.0.0</version>
+        </dependency>
+
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <version>4.11</version>
+            <scope>test</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>com.google.guava</groupId>
+            <artifactId>guava</artifactId>
+            <version>23.0</version>
+        </dependency>
+
+        <dependency>
+            <groupId>com.h2database</groupId>
+            <artifactId>h2</artifactId>
+            <version>1.3.176</version>
+        </dependency>
+
+        <!-- https://mvnrepository.com/artifact/org.projectlombok/lombok -->
+        <dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+            <version>1.18.0</version>
+        </dependency>
+
+        <!-- https://mvnrepository.com/artifact/org.slf4j/slf4j-api -->
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-api</artifactId>
+            <version>1.7.25</version>
+        </dependency>
+
+        <!-- https://mvnrepository.com/artifact/ch.qos.logback/logback-classic -->
+        <dependency>
+            <groupId>ch.qos.logback</groupId>
+            <artifactId>logback-classic</artifactId>
+            <version>1.2.3</version>
+        </dependency>
+    </dependencies>
+```
+
+3. **编写代码**
+
+```java
+package com.cy;
+
+import com.google.common.collect.Maps;
+import lombok.extern.slf4j.Slf4j;
+import org.activiti.engine.*;
+import org.activiti.engine.form.FormProperty;
+import org.activiti.engine.form.TaskFormData;
+import org.activiti.engine.impl.form.DateFormType;
+import org.activiti.engine.impl.form.StringFormType;
+import org.activiti.engine.repository.Deployment;
+import org.activiti.engine.repository.DeploymentBuilder;
+import org.activiti.engine.repository.ProcessDefinition;
+import org.activiti.engine.runtime.ProcessInstance;
+import org.activiti.engine.task.Task;
+
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.List;
+import java.util.Map;
+import java.util.Scanner;
+
+/**
+ * @program: activiti
+ * @description:
+ * @author: cy
+ * @create: 2020/05/18
+ **/
+@Slf4j
+public class DemoMain {
+
+    public static void main(String[] args) {
+        log.info("启动程序");
+        // 1. 创建流程引擎
+        ProcessEngine processEngine = getProcessEngine();
+
+        // 2. 部署流程定义文件, 获取流程定义对象
+        ProcessDefinition processDefinition = getProcessDefinition(processEngine);
+
+        // 3. 启动运行流程, 获取流程实例
+        ProcessInstance processInstance = getProcessInstance(processEngine, processDefinition);
+
+        // 4. 处理流程任务
+        Scanner scanner = new Scanner(System.in);
+        while (null != processInstance && !processInstance.isEnded()) {
+            TaskService taskService = processEngine.getTaskService();
+            List<Task> list = taskService.createTaskQuery().list();
+            log.info("待处理任务数量 [{}]", list.size());
+            for (Task task : list) {
+                log.info("待处理任务: [{}]", task.getName());
+                FormService formService = processEngine.getFormService();
+                TaskFormData taskFormData = formService.getTaskFormData(task.getId());
+                List<FormProperty> formProperties = taskFormData.getFormProperties();
+                Map<String, Object> variables = Maps.newHashMap();
+                for (FormProperty formProperty : formProperties) {
+                    if (StringFormType.class.isInstance(formProperty.getType())) {
+                        log.info("请输入: [{}]", formProperty.getName());
+                        String line = scanner.nextLine();
+                        log.info("您输入的是: [{}]", line);
+                        variables.put(formProperty.getId(), line);
+                    } else if (DateFormType.class.isInstance(formProperty.getType())) {
+                        log.info("请输入: [{}], 格式: [yyyy-MM-dd]", formProperty.getName());
+                        String line = scanner.nextLine();
+                        SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd");
+                        Date parse = null;
+                        try {
+                            parse = format.parse(line);
+                        } catch (ParseException e) {
+                            e.printStackTrace();
+                        }
+                        log.info("您输入的是: [{}]", line);
+                        variables.put(formProperty.getId(), parse);
+                    } else {
+                        log.info("类型暂不支持!", formProperty.getType());
+                    }
+                }
+                // 提交任务
+                taskService.complete(task.getId(), variables);
+                processInstance = processEngine.getRuntimeService().createProcessInstanceQuery().processInstanceId(processInstance.getId()).singleResult();
+            }
+        }
+        log.info("结束程序");
+    }
+
+    private static ProcessInstance getProcessInstance(ProcessEngine processEngine, ProcessDefinition processDefinition) {
+        RuntimeService runtimeService = processEngine.getRuntimeService();
+        ProcessInstance processInstance = runtimeService.startProcessInstanceById(processDefinition.getId());
+        log.info("启动流程 ==> [{}]", processInstance.getProcessDefinitionKey());
+        return processInstance;
+    }
+
+    private static ProcessDefinition getProcessDefinition(ProcessEngine processEngine) {
+        RepositoryService repositoryService = processEngine.getRepositoryService();
+        DeploymentBuilder deploymentBuilder = repositoryService.createDeployment();
+        deploymentBuilder.addClasspathResource("second_approve.bpmn20.xml");
+        Deployment deploy = deploymentBuilder.deploy();
+
+        ProcessDefinition processDefinition = repositoryService.createProcessDefinitionQuery()
+                .deploymentId(deploy.getId())
+                .singleResult();
+        log.info("流程定义对象 processDefinition ==> 流程定义文件: [{}], 流程 ID: [{}]", processDefinition.getName(), processDefinition.getId());
+        return processDefinition;
+    }
+
+    private static ProcessEngine getProcessEngine() {
+        ProcessEngineConfiguration configuration = ProcessEngineConfiguration.createStandaloneInMemProcessEngineConfiguration();
+        ProcessEngine processEngine = configuration.buildProcessEngine();
+        String name = processEngine.getName();
+        String version = processEngine.VERSION;
+        log.info("process ==> name: [{}], version: [{}]", name, version);
+        return processEngine;
+    }
+}
+
+```
 
 
 
@@ -111,11 +415,11 @@ BPMN 定义了 5 个基础的元素类型:
 
 Activiti中, 流程引擎 ProcessEngine 的配置是通过 ==**ProcessEngineConfiguration**== 配置类来完成的.
 
-==**ProcessEngineConfiguration**== 会==**默认**==用 ==**activiti.cfg.xml**== 来作为配置的辅助, 通过这个配置文件的配置, 构建自己的配置对象, 然后构建出 ProcessEngine.
+==**ProcessEngineConfiguration**== 会==**默认**==用 ==**activiti.cfg.xml**== 来作为配置的辅助, 通过这个配置文件的配置, 构建自己的配置对象, 然后构建出 ==ProcessEngine==. 然后就可以通过 ==ProcessEngine== 获取到需要用的各种 Service
 
 - 默认加载并解析 ==activiti.cfg.xml== 配置文件.
-- 提供了多个静态方法创建配置对象.
-- 实现了多个==**基于不同场景的子类**==, 配置方式非常灵活.
+- 提供了==多个静态方法(7 个)==创建配置对象.
+- 实现了多个==**基于不同场景的子类(6 个)**==, 配置方式非常灵活.
 
 ```java
 // 加载默认配置文件, 创建默认的 ProcessEngineConfiguration, bean 名称为 processEngineConfiguration
@@ -148,6 +452,20 @@ public static ProcessEngineConfiguration createProcessEngineConfigurationFromRes
   }
 
 ```
+
+
+
+**实现类**
+
+![image-20200518170015684](/Users/cy/Library/Application Support/typora-user-images/image-20200518170015684.png)
+
+1. ProcessEngineConfigurationImpl : 抽象实现类
+2. StandaLoneProcessEngineConfiguration : 独立部署
+3. SpringProcessEngineConfiguration: 基于 Spring, 提供了事务的扩展, 数据源的扩展, 定义了一个可以自动装载
+
+某个路径下符合规范的流程定义文件.
+
+
 
 
 
