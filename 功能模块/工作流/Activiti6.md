@@ -469,32 +469,28 @@ public static ProcessEngineConfiguration createProcessEngineConfigurationFromRes
 
 
 
-### 4.2 ProcessEngineConfiguration 可配置项
-
-#### 4.2.1 数据库配置
+### 4.2 ProcessEngineConfiguration 数据库配置
 
 - 缺省配置默认使用 H2 内存数据库
 
-```java
-//数据库更新策略: false:ProcessEngine 启动时检查数据库版本, 发生不匹配抛异常. 不做更新. 一般都会采用这种方式.
-public static final String DB_SCHEMA_UPDATE_FALSE = "false";
-//数据库更新策略: create-drop:ProcessEngine 启动时创建数据库表, 结束时删除表结构.
-public static final String DB_SCHEMA_UPDATE_CREATE_DROP = "create-drop";
-//数据库更新策略: true:ProcessEngine 启动时自动检查并更新数据库, 不存在会创建. 一般开发环境会使用这种方式.
-public static final String DB_SCHEMA_UPDATE_TRUE = "true";
-// 数据库类型, 默认是基于内存的 H2 数据库.
-protected String databaseType;
-// 可以对 Activities 的表名加前缀
-protected String databaseTablePrefix = "";
-// 执行完的流程会被迁移到历史数据内
-protected boolean isDbHistoryUsed = true;
-// 
-protected boolean isDbIdentityUsed = true;
+```properties
+databaseSchemaUpdate : 数据库更新策略,ProcessEngine 启动时检查数据库版本. 
+		fasle: 表示发生不匹配抛异常. 不做更新. 一般生产环境都采用这种方式.
+		true: 启动时自动检查并更新数据库表, 不存在会创建. 一般开发环境会使用这种方式.
+		create-drop: 启动时创建数据库表结构, 结束时删除表结构. 一般单元测试的时候使用这种方式. 当使用这种方式的时候, 需要保证数据库中没有要创建的表.
+
+databaseTablePrefix: 可以为表添加前缀
+databaseType: 数据库类型
+
+isDbHistoryUsed: 执行完的流程是否被迁移到历史数据内.
+		true: 执行完的流程数据会被迁移到历史数据库表内.
+		false: 不会迁移
+isDbIdentityUsed: 
 ```
 
 
 
-#### 4.2.2 日志和数据记录配置
+### 4.3 日志和数据记录配置
 
 - 日志组建的关系及 MDC
 - 配置历史记录级别 (HistoryLevel)
@@ -502,31 +498,112 @@ protected boolean isDbIdentityUsed = true;
 
 
 
-==**MDC**==
+###  4.3 ==**MDC**==
 
-MDC 是指将一些上下文数据存储在ThreadLocal 中, 当需要的时候, 可以将这些信息输出出来.
+MDC 是指将一些上下文数据存储在==**ThreadLocal**== 中, 当需要的时候, 可以将这些信息输出出来.
 
-- Activiti的 MDC 默认没有开启, 需要手动设置 ==**LogMDC.setMDCEnable(true)**==. 开启后就会将 activiti 的一些上下文信息存储在ThreadLocal 中,
+- Activiti的 MDC 默认没有开启, 需要手动设置 ==**LogMDC.setMDCEnable(true)**==. 开启后就会将 activiti 的一些上下文信息存储在ThreadLocal 中
 
 - 开启 MDC 后, 配置 logback.xml 日志模板 %X{MDCProcessInstanceID}
-- 流程只有在执行过程出现异常的时候才会记录 MDC 信息
+- Activiti 流程==只有在执行过程出现异常的时候才会记录 MDC 信息==
 
 
 
-==**HistoryLevel**==
+### 4.4 ==**HistoryLevel**==: 历史记录配置
 
-- none: 不记录历史流程, 性能高. 流程结束后不可读取.
-- activiti: 会记录流程实例和活动实例. 流程变量不同步.就是只会记录什么时候发生了什么事, 但是具体的细节并没有记录下来.
-- audit: 默认值. 在 Activiti 基础上同步变量值, 保存表单数据.
-- full: 性能较差. 记录所有实例和变量细节变化.
+- ==**none**==: 不记录历史流程, 性能高. 流程结束后不可读取.
+- ==**activiti**==: 会记录流程实例和活动实例. 流程变量不同步.就是只会记录什么时候发生了什么事, 但是具体的细节并没有记录下来.
+- ==**audit**==: 默认值. 在 Activiti 基础上同步变量值, 保存表单数据.
+- ==**full**==: 性能较差. 记录所有实例和变量细节变化.
 
 
 
-==**Event Logging**==
+### 4.5 事件处理及监听器配置
+
+- ==**EventLog**==: 基于 DB的事件日志
+- ==**EventListener**==: 事件监听器.
+
+#### 4.5.1 EventLog 基于 DB 的事件日志.
+
+==**Event Logging**== : 基于 DB 的事件日志
 
 - ==**实验性**==的事件记录机制. 性能影响较大. 默认没有开启
 - 打开后, 会记录整个流程的所有数据的变化过程. 表数据量的增长会很快
 - 日志内容是 json 格式.
+- ==**enableDatabaseEventLogging**== : activity 配置文件配置项, 是否开启基于 DB 的事件日志. 默认为 false.
+- ==**ManagementService**== : 通过此 Service 来读取 EventLog 数据
+
+配置:
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans" 
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans   http://www.springframework.org/schema/beans/spring-beans.xsd">
+
+  <bean id="processEngineConfiguration" class="org.activiti.engine.impl.cfg.StandaloneInMemProcessEngineConfiguration">
+    <property name="enableDatabaseEventLogging" value="true"/>
+  </bean>
+
+</beans>
+```
+
+
+
+代码演示:
+
+```java
+@Slf4j
+public class MyUnitTest_EventLog {
+
+	@Rule
+	public ActivitiRule activitiRule = new ActivitiRule("activiti_eventLog.cfg.xml");
+
+	@Test
+	@Deployment(resources = {"my-process.bpmn20.xml"})
+	public void test() {
+		ProcessInstance processInstance = activitiRule.getRuntimeService().startProcessInstanceByKey("my-process");
+		Task task = activitiRule.getTaskService().createTaskQuery().singleResult();
+		activitiRule.getTaskService().complete(task.getId());
+
+		List<EventLogEntry> eventLogEntries = activitiRule
+				.getManagementService()
+				//.getEventLogEntriesByProcessInstanceId(processInstance.getId());	// 根据流程实例 ID 获取 EventLog 数据.
+				.getEventLogEntries(0l, 100l);
+
+		eventLogEntries.forEach(eventLogEntry -> {
+			log.info("eventLogEntry ==> type: [{}], data: [{}]", eventLogEntry.getType(), new String(eventLogEntry.getData()));
+		});
+		log.info("eventLogEntries size: [{}]", eventLogEntries.size());
+	}
+
+}
+```
+
+
+
+#### 4.5.2 Listener监听器配置(2 种配置方式)
+
+==**方式一:**==配置文件配置.在配置文件中也有两种配置方式.
+
+- 方式一: 配置 ==**eventListeners**==, 监听所有事件派发通知.不区分事件类型
+- 方式二: 配置 ==**typedEventListeners**==, 监听指定事件类型的通知.
+
+
+
+==**方式二:**== bpmn流程定义文件配置. 通过标签进行配置
+
+- ==**activiti:eventListener**==: 只监听特定流程定义的事件. 不是全局的
+
+
+
+#### 4.5.3 Activiti 的事件监听
+
+
+
+
+
+
 
 ### 4.3 构建 ProcessEngine
 
@@ -534,41 +611,55 @@ MDC 是指将一些上下文数据存储在ThreadLocal 中, 当需要的时候, 
 
 
 
-## 5. 核心对象
 
-通过 ==**activiti.cfg.xml**== 可以构建 ==**ProcessEngineConfiguration**== 对象. 
 
-通过 ==**ProcessEngineConfiguration**== 对象可以构建 ==**ProcessEngine**== 对象.
+## 5. 单元测试
+
+**相关注解**
+
+- ==**@Deployment**==: 在启动单元测试之前, 部署指定路径下的流程文件.
+- ==**@Rule**==: 
+
+
+
+
+
+## 6. 核心对象
+
+通过 ==**activiti.cfg.xml**== 可以构建 ==**ProcessEngineConfiguration**== 流程引擎配置对象. 
+
+通过 ==**ProcessEngineConfiguration**== 对象可以构建 ==**ProcessEngine**== 流程引擎对象.
 
 通过 ==**ProcessEngine**== 可以构建其他的比较重要的 API:
 
-- ==RepositoryService== : 管理流程定义文件的管理.
+- ==RepositoryService== : 流程存储服务. 管理流程定义文件的管理.
 - ==RuntimeService==: 对流程进行控制的服务. 启动流程实例, 对流程实例进行暂停等. 可查询正在执行的流程实例等
 - ==TaskService==: 对运行中的 UserTask 进行管理.
-- ==IdentityService==: 对用户组的管理. 创建等
-- ==FormService==: 解析流程定义中涉及的表单. 
+- ==IdentityService==: 对用户和用户组的管理. 创建用户或者用户组, 维护用户和用户组之间的关系等.
+- ==FormService==: 解析流程定义中涉及的表单. (比较重要的表单: 启动表单以及 UserTask 的表单)
 - ==HistoryService==: 对运行结束的流程实例的查询功能.
-- ==ManagementService==: 对定时任务等的管理.
+- ==ManagementService==: 对定时任务等的管理, 获取 EventLog 数据等.
 - DynamicBPMService
 
 
 
-### 5.1 RepositoryService
+### 6.1 RepositoryService: 流程存储服务
 
 - 管理流程定义文件 xml 及静态资源的服务
-- 对特定的流程的暂停和激
-- 流程定义启动权限管理.
+- 对特定的流程(指==**流程定义**==)的暂停和激活
+- 流程定义启动权限管理.(添加用户和用户组)
+- 需要注意的是, 每次部署, id 和 version 都会更新.
 
 
 
-涉及到的 API:
+==**涉及到的 API:**==
 
-- 流程部署对象: Deployment
-- 流程定义文件对象: ProcessDefinition
-- 部署文件构造器: DeploymentBuilder. 
-- 部署文件查询器: DeploymentQuery.
-- 流程定义文件查询对象: ProcessDefinitionQuery. 
-- 流程定义的 java 格式: BpmnModel
+- 流程部署对象: ==**Deployment**==, 
+- 流程定义文件对象: ==**ProcessDefinition**==, 
+- 部署文件构造器: ==**DeploymentBuilder**==. 
+- 部署文件查询器: ==**DeploymentQuery**==.
+- 流程定义文件查询对象: ==**ProcessDefinitionQuery**==. 
+- 流程定义的 java 格式: ==**BpmnModel**==
 
 
 
@@ -591,5 +682,97 @@ MDC 是指将一些上下文数据存储在ThreadLocal 中, 当需要的时候, 
 
 
 
+==**Demo:**==
 
+```java
+/**
+ * 流程存储服务
+ */
+@Slf4j
+public class MyUnitTest_RepositoryService {
+
+	@Rule
+	public ActivitiRule activitiRule = new ActivitiRule();
+
+	/**
+	 * 部署流程定义文件
+	 */
+	@Test
+	public void deployTest() {
+		RepositoryService repositoryService = activitiRule.getRepositoryService();
+
+		DeploymentBuilder deploymentBuilder = repositoryService.createDeployment();
+		deploymentBuilder.name("第一次部署: 一次部署多个");
+		deploymentBuilder.addClasspathResource("my-process.bpmn20.xml");
+		deploymentBuilder.addClasspathResource("second_approve.bpmn20.xml");
+		Deployment deploy1 = deploymentBuilder.deploy();
+
+		DeploymentBuilder deploymentBuilder2 = repositoryService.createDeployment();
+		deploymentBuilder2.name("第二次部署: 一次部署多个");
+		deploymentBuilder2.addClasspathResource("my-process.bpmn20.xml");
+		deploymentBuilder2.addClasspathResource("second_approve.bpmn20.xml");
+		Deployment deploy2 = deploymentBuilder2.deploy();
+
+		List<Deployment> deployments = repositoryService
+				.createDeploymentQuery()
+//				.deploymentId(deploy.getId())
+				.orderByDeploymenTime().asc()
+				.listPage(0, 100);
+		deployments.forEach(deployment -> {
+			log.info("deployment ==> [{}]", deployment);
+		});
+		log.info("deployments size ==> [{}]", deployments.size());
+
+		List<ProcessDefinition> processDefinitions = repositoryService
+				.createProcessDefinitionQuery()
+//				.deploymentId(deploy.getId())
+				.orderByProcessDefinitionKey().asc()
+				.listPage(0, 100);
+		processDefinitions.forEach(processDefinition -> {
+			log.info("processDefinition ==> id: [{}], name: [{}], key: [{}], version: [{}]",
+					processDefinition.getId(),
+					processDefinition.getName(),
+					processDefinition.getKey(),
+					processDefinition.getVersion());
+		});
+	}
+
+	/**
+	 * 维护用户和用户组的关系
+	 * 	将用户和用户组关联起来
+	 */
+	@Test
+	@org.activiti.engine.test.Deployment(resources = "my-process.bpmn20.xml")
+	public void candidateTest(){
+		RepositoryService repositoryService = activitiRule.getRepositoryService();
+		ProcessDefinition processDefinition = repositoryService.createProcessDefinitionQuery().singleResult();
+
+		// 添加用户和用户组
+		repositoryService.addCandidateStarterUser(processDefinition.getId(), "user");
+		repositoryService.addCandidateStarterGroup(processDefinition.getId(), "groupM");
+
+		List<IdentityLink> identityLinks = repositoryService
+				.getIdentityLinksForProcessDefinition(processDefinition.getId());
+		identityLinks.forEach(identityLink -> {
+			log.info("identityLink ==> [{}]", identityLink);
+		});
+	}
+
+}
+```
+
+
+
+### 6.2 RuntimeService 流程运行控制服务
+
+- ==**启动流程以及对流程数据的控制**==
+- ==**流程实例(ProcessInstance)与执行流(Execution) 查询**==
+
+
+
+==**RuntimeService 启动流程及变量管理:**==
+
+- 启动流程的常用方式: 根据 id, key, message. ==每次部署后, id 和 version 都会更新, 所以使用 key 启动的时候, 默认使用对应的最新版本的==
+- 启动流程可选参数: businessKey(业务唯一标志), variables, tenantId
+- 变量(variables) 的设计和获取.
 
