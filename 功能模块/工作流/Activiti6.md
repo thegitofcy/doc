@@ -773,6 +773,46 @@ public class MyUnitTest_RepositoryService {
 ==**RuntimeService 启动流程及变量管理:**==
 
 - 启动流程的常用方式: 根据 id, key, message. ==每次部署后, id 和 version 都会更新, 所以使用 key 启动的时候, 默认使用对应的最新版本的==
-- 启动流程可选参数: businessKey(业务唯一标志), variables, tenantId
+- 启动流程可选参数: businessKey(业务唯一标志), variables, tenantId.
 - 变量(variables) 的设计和获取.
+
+
+
+==**ProcessInstance**== 和 ==**Execution**==
+
+- 流程实例(ProcessInstance)表示一次工作流业务的数据实体, 每次启动工作流引擎, 都会创建一个流程实例对象.
+- 执行流(Execution) 表示流程实例中具体的执行路径.  当==只有一条线的话, 每次的流程实例就对应一个执行流, 他们的 ID 是一致的.==
+- ==ProcessInstance== 继承 ==Execution==, 相当于 ProcessInstance 是在 Execution 的基础上进行了一些扩展.
+
+
+
+==**流程触发**==
+
+- 使用 trigger 触发 ReceiveTask 节点.
+- 触发信号捕获事件. signalEventReceived. 可以全局的发送一个信号
+- 触发消息捕获事件 messageEventReceived. 针对一个流程实例发送一个消息
+
+
+
+### 6.3 TaskService 任务管理服务
+
+- 对==**用户任务(UserTask)**==和涉及到用户任务的流程进行控制
+- 设置用户任务的==**权限信息**==(拥有者, 候选人, 办理人)
+- 针对用户任务添加任务附件, 任务评论和事件记录
+
+
+
+==**TaskService 对 Task 管理与流程控制.**==
+
+- Task 对象的创建,删除(但是一般不会手动的操作)
+- 查询 Task, 并驱动 Task 节点完成执行.
+- 在 UserTask 处理过程中, 对参数变量(variable)进行设置.
+
+
+
+==**TaskService 设置 Task 权限信息**==
+
+- 候选用户(candidateUser) 和候选组(candidateGroup)
+- 指定拥有人(Owner) 和办理人(Assignee). 拥有人一般就是流程的发起人
+- 通过 claim 设置办理人(一般使用这种方式来设置办理人), 会最当前的办理人进行判断.
 
