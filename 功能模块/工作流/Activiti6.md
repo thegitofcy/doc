@@ -796,6 +796,8 @@ public class MyUnitTest_RepositoryService {
 
 ### 6.3 TaskService 任务管理服务
 
+`MyUnitTest_TaskService`
+
 - 对==**用户任务(UserTask)**==和涉及到用户任务的流程进行控制
 - 设置用户任务的==**权限信息**==(拥有者, 候选人, 办理人)
 - 针对用户任务添加任务附件, 任务评论和事件记录
@@ -813,6 +815,15 @@ public class MyUnitTest_RepositoryService {
 ==**TaskService 设置 Task 权限信息**==
 
 - 候选用户(candidateUser) 和候选组(candidateGroup)
-- 指定拥有人(Owner) 和办理人(Assignee). 拥有人一般就是流程的发起人
-- 通过 claim 设置办理人(一般使用这种方式来设置办理人), 会最当前的办理人进行判断.
+- 指定拥有人(Owner, 一般就是流程的发起人) 和办理人(Assignee). 
+- 通过 claim 设置办理人(一般使用这种方式来设置办理人), 使用 claim 设置的时候, 如果发现当前已经有办理人了, 就会进行判断, 如果发现当前办理人不是当前的参数, 就会报一个异常. 
 
+
+
+==**TaskService 设置 Task 附加信息**==
+
+- 任务附件(Attachment) 创建与查询. 场景: 比如报销审批时, 需要一发票电子文件等.
+  - `taskService.createAttachment`
+  - `taskService.getTaskAttachments`
+- 任务评论(comment) 创建与查询. 场景: 比如和业务关系不是特别强的备注等.
+- 事件记录(Event) 创建与查询
