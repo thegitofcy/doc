@@ -827,3 +827,63 @@ public class MyUnitTest_RepositoryService {
   - `taskService.getTaskAttachments`
 - 任务评论(comment) 创建与查询. 场景: 比如和业务关系不是特别强的备注等.
 - 事件记录(Event) 创建与查询
+
+
+
+### 6.4 IdentityService 身份管理服务
+
+- 管理用户(User). 创建,查询, 删除  newUser(userid), newGroup(groupId)
+- 管理用户组(Group).
+- 用户与用户组的关系(Membership). 用户和用户组是多对多的关系.
+- 
+
+
+
+### 6.5 FormService 表单管理服务
+
+- 解析流程定义中表单项的配置
+- 提交表单的方式驱动用户节点流转. submit
+- 获取自定义外部表单 key.
+
+其实就是对 ==流程定义文件==解析的过程. 一般需要的参数是 ==ProcessDefinition==
+
+```java
+formService.getStartFormKey(processDefinitionId);
+formService.getStartFormData(processDefinitionId)
+  
+formService.getTaskFormKey
+formService.getTaskFormData(taskId)
+```
+
+
+
+### 6.6 HistoryService 历史管理服务
+
+- 管理流程实例结束后的历史数据
+- 构建历史数据的查询对象.
+- 根据流程实例 ID 删除流程历史数据.
+
+
+
+==**HistoryService 历史数据实体:**==
+
+- ==**HistoricProcessInstance**== : 历史流程实例实体类
+- ==**HistoricVariableInstance**==: 流程或任务变量值的实体.
+- ==**HistoricActivityInstance**==: 单个活动节点执行的信息.(包括开始, 结束节点, 用户任务节点等)
+- ==**HistoricTaskInstance**==: 用户任务实例的信息.(UserTask)
+- ==**HistoricDetail**== : 历史流程活动任务详细信息 .(form 表单提交的 form 属性信息, 还有变量发生修改的过程)
+
+
+
+==**HistoryService 构建历史查询对象方式:**==
+
+- create[历史数据实体]Query
+- createNative[历史数据实体]Query
+- createProcessInstanceHistoryLogQuery: 只能查出一个流程实例的对象, 一次只能查出一个对象, 包括这个流程实例所有的其他信息, 比如评论信息, task, 等
+
+
+
+==**HistoryService 删除历史操作**==
+
+- ==**deleteHistoricProcessInstance**==: 会同步删除流程实例的其他信息, 例如节点, task, 评论信息等
+- ==**deleteHistoricTaskInstance**==: 删除对应的 historicTask删除掉, 并没有删除对应的流程实例信息.
