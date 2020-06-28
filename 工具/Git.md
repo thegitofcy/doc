@@ -1,3 +1,32 @@
+# 设置
+
+## git status 中文文件名编码问题
+
+如果显示的中文文件名和路径为 八进制 的字符编码, 则可以通过设置 `core.quotepath` 为 `false` 来正常的显示中文.
+
+设置方法: `git config --global core.quotepath false`
+
+
+
+# 操作
+
+## 1. 远程版本和本地版本冲突
+
+原理: 通过 `git stash [save "备注"]` 命令==**暂存**==本地修改, 然后更新代码, 根据==**暂存标记(类似 stash@{0})**==还原暂存内存, 在本地结局冲突, 最后提交.
+
+```shell
+git stash save "本地修改"  // 保存本地修改
+git stash list           // 将 Git stash 信息列表打印出来.  备注信息前边的是刚刚保存的标记. 
+git pull								 // 更新内容
+git stash pop [暂存标记]  // 根据暂存标记恢复暂存的内容.
+本地结局冲突......
+提交本地代码
+git stash drop [暂存标记] // 删除暂存内容
+git stash clear         // 和上边一样,也是删除暂存内容,但是这里是删除所有stash 内容
+```
+
+
+
 # 附录
 
 ## 常见问题
