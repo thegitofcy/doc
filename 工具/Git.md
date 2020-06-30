@@ -1,10 +1,39 @@
 # 设置
 
-## git status 中文文件名编码问题
+## 1. git status 中文文件名编码问题
 
 如果显示的中文文件名和路径为 八进制 的字符编码, 则可以通过设置 `core.quotepath` 为 `false` 来正常的显示中文.
 
 设置方法: `git config --global core.quotepath false`
+
+
+
+## 2. Git 忽略文件
+
+### 1. 编写 `.gitignore` 文件. 然后在文件中添加要忽略的文件或者目录. 
+
+==**注意: 忽略文件路径的添加, 都是相对于 .gitignore 文件的**==
+
+
+
+### 2. 全局忽略文件
+
+Mac 环境:
+
+1. 编写 `~/.gitignore_global` 全局忽略文件
+
+2. 编辑`~/.gitconfig`, 引用全局忽略文件
+
+   ```
+   [user]
+           name = cy
+           email = theemailofcy@163.com
+   [core]
+           quotepath = false
+           excludesfile = .gitignore_global	// 在这一句引用
+   ```
+
+   
 
 
 
