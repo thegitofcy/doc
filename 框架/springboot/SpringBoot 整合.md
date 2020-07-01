@@ -35,7 +35,7 @@
 
 ### 2.创建目录
 
-在 `resources` 目录下创建 `webapp/WEB-INF/jsp` 目录
+在 `resources` 同级目录下创建 `webapp/WEB-INF/jsp` 目录
 
 
 
@@ -50,13 +50,48 @@ spring.mvc.view.suffix=.jsp
 
 ### 4. 编写 Controller 以及创建 home.JSP
 
+```jsp
+<%@ page contentType="text/html;charset=UTF-8" language="java" %>
+<%@ taglib prefix="c" uri="http://java.sun.com/jstl/core_rt"%>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+    <h1>this is jsp</h1>
+    <span>${param}</span><br>	<!-- 传单个属性,需要从指定域中获取, 这样是取不到的 -->
+    <span>${requestScope.param}</span><br> <!-- 传单个属性,需要从指定域中获取, requestScope 是指 request 域 -->
+    <span>${user.name}</span> <!-- 传递对象可以直接取 -->
+</body>
+</html>
+```
+
+
+
 ```java
 @Controller
-public class CategoryController {
-  
-    @RequestMapping("/home")
-    public String listCategory(){
-        return "home";
+public class JSPController {
+
+    @RequestMapping("hello")
+    public String hello() {
+        return "index";
+    }
+
+    @RequestMapping("/modelAndView")
+    public ModelAndView modelANdViewTest() {
+        ModelAndView modelAndView = new ModelAndView("index");
+        modelAndView.addObject("user", new User(1,"老王", "12"));
+        modelAndView.addObject("param", "this is modelAndView value");
+        return modelAndView;
+    }
+
+    @RequestMapping("/model")
+    public String modelTest(Model model) {
+        model.addAttribute("user", new User(1,"老王", "12"));
+        model.addAttribute("param", "this is model value");
+        return "index";
     }
 }
 ```
