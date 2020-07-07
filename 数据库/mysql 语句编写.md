@@ -2,6 +2,16 @@
 
 前提: 需要有 ==**UNIQUE 索引**==或者 ==**PRIMARY KEY**==
 
+
+
+添加 unique 索引: 
+
+```SQL
+alter table customer add unique (cus_name);
+```
+
+
+
 ## 1. 不存在则插入, 存在则更新.
 
 ### on duplicate key update
@@ -13,10 +23,13 @@ INSERT INTO customer
     (id, cus_name, birthday, cus_sex, cus_addr, cus_iphone)
 VALUES
        (1, 'tom1', '2019-07-11', '2', 'beijing1', '1111')
+       # 加入一次多条数据, 有更新的有插入的, 则用逗号隔开
+       , (2, 'jim2', '2019-07-11', '2', 'beijing1', '1111')
   ON DUPLICATE KEY
-  UPDATE `cus_iphone`=1111, cus_name='tom1';
+  #UPDATE `cus_iphone`=1111, cus_name='tom1';
+  UPDATE `cus_iphone`=VALUES(cus_iphone), cus_name=VALUES(cus_name); #动态, 会被修改为对应上边的值
   
-  id 为主键
+  id 为主键, 或者不用主键, 只用 unique
 ```
 
 

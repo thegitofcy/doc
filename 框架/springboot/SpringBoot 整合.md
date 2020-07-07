@@ -1,6 +1,13 @@
 
 
-# SpringBoot 整合 JSP
+# 1. 整合 JSP
+
+### 1.步骤概述
+
+1. 添加依赖.(servlet, jstl, tomcat, jsp 引擎)
+2. 创建存放 jsp 页面的目录 `webapp/WEB-INF/jsp`(和 src, resources 同级)
+3. 配置解析 jsp 的前缀和后缀
+4. 此时就可以通过 controller 进行访问了.
 
 ### 1.添加依赖
 
@@ -39,7 +46,7 @@
 
 
 
-### 3. 配置JSP 前缀后缀
+### 3.配置JSP 前缀后缀
 
 ```properties
 spring.mvc.view.prefix=/WEB-INF/jsp/
@@ -48,7 +55,7 @@ spring.mvc.view.suffix=.jsp
 
 
 
-### 4. 编写 Controller 以及创建 home.JSP
+### 4.编写 Controller 以及创建 home.JSP
 
 ```jsp
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
@@ -102,4 +109,34 @@ public class JSPController {
 
 
 
-# 整合
+# 2. 整合 mybatis
+
+### 1. 步骤概述
+
+1. 添加依赖(web, MySQL, mybatis)
+2. 
+
+### 2. 添加依赖
+
+```xml
+				<!--web核心依赖-->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-web</artifactId>
+        </dependency>
+
+        <!--mysql数据库驱动-->
+        <dependency>
+            <groupId>mysql</groupId>
+            <artifactId>mysql-connector-java</artifactId>
+            <scope>runtime</scope>
+        </dependency>
+
+        <!--mybatis-->
+        <dependency>
+            <groupId>org.mybatis.spring.boot</groupId>
+            <artifactId>mybatis-spring-boot-starter</artifactId>
+            <version>2.1.0</version>
+        </dependency>
+```
+
