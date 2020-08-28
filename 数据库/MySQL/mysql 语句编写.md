@@ -1,4 +1,4 @@
-# MySQL 不存在则插入, 存在则更新或者忽略
+## 1. MySQL 不存在则插入, 存在则更新或者忽略
 
 前提: 需要有 ==**UNIQUE 索引**==或者 ==**PRIMARY KEY**==
 
@@ -12,9 +12,9 @@ alter table customer add unique (cus_name);
 
 
 
-## 1. 不存在则插入, 存在则更新.
+### 1. 不存在则插入, 存在则更新.
 
-### on duplicate key update
+#### on duplicate key update
 
 如果插入的数据 会导致  ==**UNIQUE 索引**==或者 ==**PRIMARY KEY**==冲突, 则执行 update 语句.
 
@@ -34,7 +34,7 @@ VALUES
 
 
 
-### replace into
+#### replace into
 
 如果插入的数据 会导致  ==**UNIQUE 索引**==或者 ==**PRIMARY KEY**==冲突, 则先删除旧数据再插入最新的数据.
 
@@ -49,7 +49,7 @@ id 为主键
 
 
 
-## 2. 避免重复插入
+### 2. 避免重复插入
 
 如果插入的数据 会导致  ==**UNIQUE 索引**==或者 ==**PRIMARY KEY**==冲突, 则忽略本次操作/不插入数据
 
@@ -62,3 +62,31 @@ values
   id 为主键
 ```
 
+
+
+# 2. 关键字--操作字符串
+
+## locate(str, subStr)
+
+`locate(str, subStr)` : 子字符串 subStr 第一次出现在字符串 str 中的位置.(结果从 1 开始)
+
+`locate(str, subStr, post)` : 从 post 开始, 子字符串 subStr 第一次出现在字符串 str 中的位置.(结果从 1 开始)
+
+```sql
+-- result: 3
+select locate('3', '1234');  -- 3 出现在 1234 中的位置.
+
+-- result: 3
+select locate('3','1234', 2); -- 从位置 2 开始查找, 3 出现在字符串中 1234 中的位置.
+```
+
+
+
+## substring_index(s, delimiter, number)
+
+delimiter: 分隔符
+
+`substring_index(str, delimiter, number)`: 返回字符串 str 中第 number 个出现的分隔符 delimiter 之后的子字符串
+
+- number 是正数: 返回(从左向右数)第 number 个 delimiter 左侧的字符串.
+- number 是负数: 返回(从右向左数)第 number 个 delimiter 右侧的字符串
