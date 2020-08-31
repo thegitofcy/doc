@@ -68,9 +68,9 @@ values
 
 ## locate(str, subStr)
 
-`locate(str, subStr)` : 子字符串 subStr 第一次出现在字符串 str 中的位置.(结果从 1 开始)
+`locate(subStr, str)` : 子字符串 subStr 第一次出现在字符串 str 中的位置.(结果从 1 开始)
 
-`locate(str, subStr, post)` : 从 post 开始, 子字符串 subStr 第一次出现在字符串 str 中的位置.(结果从 1 开始)
+`locate(subStr, str, post)` : 从 post 开始, 子字符串 subStr 第一次出现在字符串 str 中的位置.(结果从 1 开始)
 
 ```sql
 -- result: 3
@@ -89,4 +89,84 @@ delimiter: 分隔符
 `substring_index(str, delimiter, number)`: 返回字符串 str 中第 number 个出现的分隔符 delimiter 之后的子字符串
 
 - number 是正数: 返回(从左向右数)第 number 个 delimiter 左侧的字符串.
-- number 是负数: 返回(从右向左数)第 number 个 delimiter 右侧的字符串
+- number 是负数: 返回(从右向左数)第 number 个 delimiter 右侧的字符串.
+
+```sql
+-- 结果: name1
+select substring_index('name1,name2,name3', ',', 1) from aaa; 
+
+-- 结果: name3
+select substring_index('name1,name2,name3', ',', -1) from aaa;
+```
+
+
+
+## left(arg, length) 和 right(arg, length)
+
+获取 arg 左边或者右边的 lenght 个字符串.   arg 可以是数字也可以是字符串.
+
+```sql
+-- 结果: 12
+select left(1234, 2);
+
+-- 结果: 34
+select right(1234, 2);
+```
+
+
+
+## 字符串拼接
+
+```sql
+create table aaa
+(
+    id   int         null,
+    name varchar(21) null,
+    age int null
+);
+```
+
+
+
+### 1. concat(str1, str2...) 多个字符串拼接成一个字符串
+
+将==**多个**==字符串拼接这一个新的字符串. 如果任何一个参数为 null, 则返回结果就为 null
+
+```sql
+-- 结果: 123456
+select concat('123', '456')
+
+-- 结果: null
+select concat('123', '456', null)
+```
+
+
+
+### 2. concat_ws(separator, str1, str2...) 多个字符串拼接成一个字符串, 使用separator分割
+
+separator 不能为 null, 如果 separator 为 null, 则结果为 null
+
+```SQL
+-- 结果: 123,456,789
+select concat_ws(',','123', '456', '789');
+
+-- 结果: null
+select concat_ws(null, '123', '456', '789');
+```
+
+
+
+
+
+### 3. group_concat(column [order by column] [separator '分隔符'])
+
+在使用 group by 分组的时候, 既能显示要分组的字段, 又能显示分组后,在同一组的字段
+
+```sql
+-- 结果: 除了显示分组字段name外, 还会默认以 , 为分隔符, 显示同一分组的 age 字段
+select name, group_concat(age) from aaa group by name;
+
+-- 结果: 除了显示分组字段name外, 还会以 _ 为分隔符, 显示同一分组的 age 字段, 并且按照 age 进行排序.
+select name,group_concat(age order by age asc separator '_') from aaa group by name;
+```
+
