@@ -158,7 +158,7 @@ select concat_ws(null, '123', '456', '789');
 
 
 
-### 3. group_concat(column [order by column] [separator '分隔符'])
+### 3. group_concat(column [order by column] [separator '分隔符']) 多行转一行
 
 在使用 group by 分组的时候, 既能显示要分组的字段, 又能显示分组后,在同一组的字段
 
@@ -170,3 +170,37 @@ select name, group_concat(age) from aaa group by name;
 select name,group_concat(age order by age asc separator '_') from aaa group by name;
 ```
 
+
+
+### 4. mysql.help_topic 一行转多行
+
+
+
+```sql
+-- 首先模拟数据   结果为 a,b,c,d
+select length(name) from aaa where id = 6;
+
+-- 结果为 4 条数据, id 都为 6, name1 分别为 a, b, c, d
+select 
+id, 
+substring_index(substring_index(a.name, ',', topic.help_topic_id + 1), ',', -1) as name1 
+from aaa a
+join mysql.help_topic topic on topic.help_topic_id < (length(a.name) - length(replace(a.name, ',', '')) + 1)
+where id = 6;
+```
+
+
+
+### 5. ifnull(arg1, arg2) :判断arg1 是否为 null, 如果为 null, 则返回 arg2, 否则返回 arg1
+
+```sql
+-- 结果: 123
+select ifnull(null, '123');
+
+-- 结果: abc
+select ifnull('abc', '123');
+```
+
+
+
+# 3. mysql.help_topic
