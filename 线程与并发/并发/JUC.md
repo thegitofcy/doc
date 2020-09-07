@@ -1,4 +1,4 @@
-# 1.
+# 1. Atomic
 
 ## AtomicInteger
 
@@ -48,9 +48,154 @@ public class AtomicIntegerExample {
 
 
 
-# J.U.C
+## AtomicLong/LongAdder
 
-## CountDownLatch
+```java
+@Slf4j
+@ThreadSafe
+public class AtomicLongExample {
+
+    private static final int clientTotal = 1000;
+    private static final int threadTotal = 50;
+    private static AtomicLong count = new AtomicLong(0l);
+
+    public static void main(String[] args) throws InterruptedException {
+        ExecutorService executorService = Executors.newCachedThreadPool();
+        final Semaphore semaphore = new Semaphore(threadTotal);
+        final CountDownLatch countDownLatch = new CountDownLatch(clientTotal);
+        for (int i = 0; i < clientTotal; i++) {
+            executorService.execute(() -> {
+                try {
+                    semaphore.acquire();
+                    add();
+                    semaphore.release();
+                } catch (InterruptedException e) {
+                    log.error("exception: {}", e);
+                }
+                countDownLatch.countDown();
+            });
+        }
+        countDownLatch.await();
+        executorService.shutdown();
+        log.info("count: {}", count.get());
+    }
+
+    private static void add() {
+        count.incrementAndGet();
+    }
+}
+```
+
+
+
+```java
+@Slf4j
+@ThreadSafe
+public class LongAdderExample {
+
+    private static final int clientTotal = 1000;
+    private static final int threadTotal = 50;
+    private static LongAdder longAdder = new LongAdder();
+
+    public static void main(String[] args) throws InterruptedException {
+        ExecutorService executorService = Executors.newCachedThreadPool();
+        final Semaphore semaphore = new Semaphore(threadTotal);
+        final CountDownLatch countDownLatch = new CountDownLatch(clientTotal);
+        for (int i = 0; i < clientTotal; i++) {
+            executorService.execute(() -> {
+                try {
+                    semaphore.acquire();
+                    add();
+                    semaphore.release();
+                } catch (InterruptedException e) {
+                    log.error("exception: {}", e);
+                }
+                countDownLatch.countDown();
+            });
+        }
+        countDownLatch.await();
+        executorService.shutdown();
+        log.info("count: {}", longAdder);
+    }
+
+    private static void add() {
+        longAdder.increment();
+    }
+}
+```
+
+### AtomicLong 和 LongAdder 的不同:
+
+大致意思如下: (不太准确, 后期需要补充.)
+
+首先, AtomicLong 由于 CAS 的原因, 在一个 while 中完成的操作, 在高并发的时候, 效率会比较低, LongAdder 在 AtomicLong 的基础上, 通过数组, 对数据进行分散, 在高并发的时候提高效率.
+
+
+
+## AtomicReference<>
+
+```java
+@Slf4j
+@ThreadSafe
+public class AtomicReferenceExample {
+
+    private static AtomicReference<Integer> count = new AtomicReference<>(0);
+
+    public static void main(String[] args) {
+      	// 当值是第一个参数的时候, 就将值更新为第二个参数
+        count.compareAndSet(0, 1);
+        count.compareAndSet(1, 2);
+        count.compareAndSet(2, 3);
+        count.compareAndSet(3, 4);
+        log.info("count: {}", count);   // 4
+    }
+}
+```
+
+
+
+## AtomicXXXFieldUpdater
+
+```java
+/**
+ * @program: thread-part1
+ * @description: AtomicXXXFieldUpdater 原子性更新某一个类的一个实例
+ *  当前类是使用  AtomicIntegerFieldUpdater 更新 AtomicXXXFieldUpdaterExample 的 count 属性.
+ * @author: cy
+ */
+@Slf4j
+@ThreadSafe
+public class AtomicXXXFieldUpdaterExample {
+
+    private static AtomicIntegerFieldUpdater<AtomicXXXFieldUpdaterExample> updater = AtomicIntegerFieldUpdater.newUpdater(AtomicXXXFieldUpdaterExample.class, "count");
+
+    /** count 必须使用 volatile 进行修饰, 并且不是 static 修饰的.*/
+    @Getter
+    public volatile int count = 100;
+
+    private static AtomicXXXFieldUpdaterExample atomicXXXFieldUpdaterExample = new AtomicXXXFieldUpdaterExample();
+
+    public static void main(String[] args) {
+        if (updater.compareAndSet(atomicXXXFieldUpdaterExample, 100, 120)) {
+            log.info("update success 1, count: {}", atomicXXXFieldUpdaterExample.getCount());
+        } else {
+            log.info("update success 1, count: {}", atomicXXXFieldUpdaterExample.getCount());
+        }
+
+        if (updater.compareAndSet(atomicXXXFieldUpdaterExample, 100, 150)) {
+            log.info("update success 2, count: {}", atomicXXXFieldUpdaterExample.getCount());
+        } else {
+            log.info("update success 2, count: {}", atomicXXXFieldUpdaterExample.getCount());
+        }
+    }
+}
+```
+
+
+
+
+
+# CountDownLatch
 
 ### 背景
 
@@ -61,10 +206,9 @@ public class AtomicIntegerExample {
 
 ### 概念
 
-- 作用: CountDownLatch 是一个多线程控制工具类, 使一个线程等待其他线程各自执行完毕后再执行.
+- 作用: CountDownLatch 是一个多线程控制工具类, 使一个线程等待其他线程各自执行完毕后再执行. 换句话说就是使一个线程进入阻塞状态(调用 `countDownLatch.await()`的线程), 达到一定条件后(调用 `countDownLatch.countDown()` 使计数器减为 0)才可以继续执行.
 - 实现原理: 通过一个 ==**计数器**== 来实现的. 计数器的初始值就是线程的数量. 每当一个线程执行完毕后, 计数器的值就减 1, 当计数器的值为 0 的时候,就表示所有线程都执行完毕了, 然后在闭锁上等待的线程就可以恢复工作了.
-
-
+- 通常和 Semaphore 一起和线程池一起使用
 
 ### 源码
 
@@ -127,7 +271,7 @@ public class CountDownLatchExample implements Runnable {
 
 
 
-## **CyclicBarrier**
+# **CyclicBarrier**
 
 ### 背景
 
@@ -223,4 +367,14 @@ public class CyclicBarrierExample implements Runnable {
     }
 }
 ```
+
+
+
+# Semaphore
+
+### 背景
+
+### 概念
+
+- 通常和 CountDownLatch 一起和线程池一起使用
 

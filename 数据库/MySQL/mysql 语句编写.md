@@ -203,4 +203,10 @@ select ifnull('abc', '123');
 
 
 
+### 6. if(arg1, arg2, arg3) : 如果 arg1为 true, 则结果为 arg2, 否则为 arg3
+
+
+
+
+
 # 3. mysql.help_topic
