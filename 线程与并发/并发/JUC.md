@@ -466,12 +466,12 @@ PS: AQS 通过==**模板模式**==实现.
 
 ## 1. AQS 同步器
 
-AQS(AbstractQueuedSynchronizer), 队列同步器, 也叫同步器, 是用来==构建其他锁或者同步组件的基础框架==.
+AQS(AbstractQueuedSynchronizer), 队列同步器, 也叫同步器, 是用来==构建其他锁或者同步组件的基础框架==. 是 Java提供的一个底层同步工具类, 用一个 int 类型的变量表示同步状态, 并通过一系列的 CAS 操作来管理这个同步状态. AQS 的主要作用是为 java 中的并发同步组件提供统一的底层支持, 例如 ReentrantLock, CountDownLathc 等都是基于 AQS 实现的, 用法是通过继承 AQS 来实现其模板方法, 然后将其子类作为其内部类.
 
 ### 1. AQS 有两大核心
 
 1. volatile 修饰的 int 类型的 ==state==, 用来表示同步状态.
-2. ==FIFO== 等待队列, 是一个双向链表. 当线程争抢资源被阻塞的时候, 这个线程就会被添加到链表的尾部.
+2. ==FIFO== 等待队列, 是一个双向链表. 当线程争抢资源被阻塞的时候, 这个线程就会被添加到链表的尾部. 首节点是成功获取锁的线程节点.
 
 
 
@@ -481,8 +481,13 @@ AQS(AbstractQueuedSynchronizer), 队列同步器, 也叫同步器, 是用来==�
 
 
 
-- 如果当前线程抢占资源失败, 那么就会AQS 就会把当前线程以及等待状态等信息构造成一个 Node 节点,添加到 FIFO 队列尾部, 同步阻塞改线程.
-- 当前获取锁的线程释放锁后, 会从 FIFO 中唤醒一个阻塞的 Node(线程)
+- FIFO 主要用来存放在锁上阻塞的线程.
+
+- 当一个线程尝试获取锁的时候, 如果已经被占用, 则此线程会进入阻塞状态, 然后 AQS 会把当前线程以及等待状态等构建一个 Node 节点, 添加到 FIFO 的尾部.
+
+- FIFO 的首节点是成功获取锁的节点, 当首节点释放锁的时候, 会唤醒后边的 FIFO 中的阻塞 Node,
+
+  
 
 
 
@@ -587,7 +592,7 @@ public class ReentrantLockExample {
 
 ### 2. LockSupport
 
-LockSupport 是基于线程的锁, 比 ReentrantLock等更加底层.
+LockSupport 是基于线程的锁, 比 ReentrantLock等更加底层. 是可中断的锁.(Thread.interrupt)
 
 
 
@@ -595,7 +600,7 @@ LockSupport 是基于线程的锁, 比 ReentrantLock等更加底层.
 
 `static void park(): 静态方法, 让当前线程进入阻塞状态`
 
-`static void unpark(Thread): 静态方法, 唤醒指定的线程`
+`static void unpark(Thread): 静态方法, 唤醒指定的线程.如果在unpark 的时候, 线程未被阻塞, 那么 unpark 后的第一个 park 将不会阻塞线程.`
 
 
 
