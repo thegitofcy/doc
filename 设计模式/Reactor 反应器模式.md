@@ -6,6 +6,9 @@
 
 
 - NIO 就是基于事件驱动来的
+- Netty 基于 Reactor 模式
+- Nginx 基于 Reactor 模式
+- Redis 基于 Reactor 模式
 
 ## 1. Reactor 模式简单理解
 
@@ -28,6 +31,24 @@
 # 2. Reactor 详解
 
 Reactor 基于事件驱动(`等发生了事件, 再通知我, 我再去处理`).
+
+
+
+==**关键点:**==
+
+1. 事件驱动(Event Handling)
+
+2. 可以处理一个或者多个输入源(one or more inputs)
+
+3. 通过 server Handler 同步的将输入事件 (Event) 采用多路复用分发给相应的 Request Handler(多个)处理
+
+   <img src="/Users/cy/develop/doc/local/picture/Reactor 模式/image-20200914143941541.png" alt="image-20200914143941541" style="zoom:50%;" />
+
+
+
+==**Reactor 处理方式:**==
+
+
 
 ## 1. 分而治之
 
