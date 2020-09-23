@@ -37,3 +37,54 @@ cd task   -- 当前目录下有多少文件就是有多少个线程
 cd fd   	--  文件描述符. 是从 0 开始的数字. 任何一个程序都有 IO. 最少有三个. 0: 标准输入, 1 标准输出, 2:错误输出. 
 ```
 
+
+
+
+
+# 调用服务
+
+
+
+## 1. curl
+
+==**curl 参数**== : -d:短形式. --data: 长形式
+
+```properties
+-o : 将结果保存在到指定文件
+-d : 请求参数
+-v : 进入Verbose模式, 以获取更详细的请求信息
+-i : 获取Response Header 信息和 Body 信息
+-I : 获取 Response Header 信息
+```
+
+
+
+### 1.常用命令
+
+```shell
+curl www.baidu.com   // 访问www.baidu.com
+curl -o /path/file www.baidu.com  // 访问当前 URL, 并将结果保存在 file 文件内
+curl -v -o /path/file www.baidu.com // 如果觉得 curl 的结果不太详细, 可以通过 -v 进入Verbose模式, 获取更详细的结果.
+curl --trace dump www.baidu.com // 如果觉得-v 还不够详细, 可以使用 --trace file 将更详细的结果保存在 file 文件中. 
+curl --tace--ascii dump www.baidu.com // --trace 结果是 16 进制的, 使用--tace--ascii 获取看的明白的结果.
+```
+
+
+
+### 2. 关于 header
+
+```shell
+curl -i www.baidu.com // 获取 Response 的 Header信息以及 Body 信息.
+curl -I www.baidu.com // 只获取 Response 的 Head 信息
+```
+
+
+
+### 3. POST
+
+```shell
+curl -d key1=value1&key2=value2 http://example.com // 发送POST 请求
+curl -d key1=value1 -d key2=value2 http://example.com // 发送多组数据, curl 会自动将数据连接起来
+curl -d @filename http://example.com // 还可以把 post 参数放在文件内, 然后发送请求
+```
+
