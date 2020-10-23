@@ -18,7 +18,7 @@
 使用 ==**foreach**== 的时候, ==**foreach**==的属性 ==**collection**==的取值问题:
 
 - 假如传入的参数是个 list, 那么 ==**collection**==的值就是 ==list==, 相当于取出 ==**map**== 中 key 为 ==list==的 Value 值. 然后 foreach 的 ==item== 属性取值就是 list 内的元素
-- 假如传入的参数是个数组, 同理, ==**collection**==的值就是 ==array
+- 假如传入的参数是个数组, 同理, ==**collection**==的值就是 ==array==
 
 
 
