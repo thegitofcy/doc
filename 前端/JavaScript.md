@@ -82,3 +82,21 @@ Math.PI					// => 圆周率
 > 类似的方法有  isNaN(), 当参数为NaN或者一个非数字值(比如字符串, 对象)的时候, 返回true.
 >
 > isFinite(x): 当x不是NaN, Infinity, -Infinity的时候, 返回true
+
+
+
+## 变量
+
+> 变量在作用域内, 会覆盖调大作用域的变量,并且在函数内定义的变量, 在整个函数体内始终都可见.即使在最下边定义
+
+```JavaScript
+var scope = "global";
+function f() {
+  log(scope); //结果为 undefined, 因为此时, 函数体内的scope会覆盖掉全局的scope, 
+  var scope = "local";
+  log(scope)	// 输出 local
+}
+```
+
+
+

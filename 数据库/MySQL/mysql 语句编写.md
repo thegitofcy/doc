@@ -210,3 +210,19 @@ select ifnull('abc', '123');
 
 
 # 3. mysql.help_topic
+
+
+
+# 4. 更新
+
+## 1. 查询后在更新. 更新字段值为之前的值拼接上一个字符串
+
+```sql
+update table1 a
+inner join (
+select * from table1 where id = 'xx'
+) b
+on a.id = b.id
+set a.xxx = concat(b.xxx, 'sss');
+```
+
