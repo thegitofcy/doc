@@ -26,13 +26,13 @@ interact
    chmod 777 xxx.sh
    ```
 
-3. 配置iterm2 profile
+3. 配置iterm2 profile - 
 
    ```shell
    /Users/cy/.ssh/anguan_jicha.sh [port] [username] [host] [password]
    ```
 
-   <img src="/Users/cy/dev/doc/doc/local/picture/image-20201105091322384.png" alt="image-20201105091322384" style="zoom:50%;" />
+   <img src="../doc/local/picture/iterm2/image-20210117215400194.png" alt="image-20210117215400194" style="zoom:50%;" />
 
 
 

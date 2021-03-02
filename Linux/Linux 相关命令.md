@@ -88,3 +88,5 @@ curl -d key1=value1 -d key2=value2 http://example.com // 发送多组数据, cur
 curl -d @filename http://example.com // 还可以把 post 参数放在文件内, 然后发送请求
 ```
 
+
+
